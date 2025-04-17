@@ -10,8 +10,15 @@ type Props = {
 
 }
 
-const QuestionCard: React.FC<Props> = ({question, answers, callback, userAnswer, questionNr,totalQuestions}) => {
-  return (
+const QuestionCard: React.FC<Props> = ({
+  question, 
+  answers, 
+  callback, 
+  userAnswer, 
+  questionNr,
+  totalQuestions
+}) => (
+  
     <div>
 
         <p className='number'>
@@ -25,13 +32,11 @@ const QuestionCard: React.FC<Props> = ({question, answers, callback, userAnswer,
                        <span dangerouslySetInnerHTML={{__html: answer}} />
                         
                     </button>
-                <div/>
-
+                </div>
             ))}
         </div>
-
-    </div>
-  )
-}
+    </div> 
+  
+ );
 
 export default QuestionCard;
