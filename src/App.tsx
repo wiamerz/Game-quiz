@@ -41,7 +41,25 @@ const App = () => {
 
 
   } 
+
+  //check answer function
   const checkAnswer = (e: React.MouseEvent<HTMLButtonElement>) => {
+    if(!gameOver) {
+      //users answer
+      const answer = e.currentTarget.value;
+      //check answer against correct answer 
+      const correct = questions[number].correct_answer === answer;
+      // add scpre if answer is correct
+      if (correct) setScore((prev) => + 1);
+      //save answer in the array for user answers
+      const AnswerObject = {
+        question: questions[number].question,
+        answer,
+        correct,
+        correctAnswer: questions[number].correct_answer
+      };
+      setUserAnswers((prev) => [...prev, AnswerObject]);
+    }
 
   }
 
@@ -70,10 +88,15 @@ const App = () => {
         callback= {checkAnswer}
       /> 
     )}
-
+      {!gameOver && !Loading && userAnswers.length === number + 1 && number !== TOTAL_QUESTIONS - 1 ? (
       <button className='next' onClick={nextQuestion}>
         Next question
       </button>
+      ) : null}
+
+
+
+      
     </div>
   );
 }
