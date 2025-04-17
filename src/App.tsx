@@ -63,9 +63,17 @@ const App = () => {
 
   }
 
+  //pass to nest question function
   const nextQuestion = () => {
+    const nextQuestion = number + 1;
 
-  }
+    if (nextQuestion === TOTAL_QUESTIONS){
+      setGameOver(true);
+    } else {
+      setNumber(nextQuestion);
+    }
+
+  };
 
   return (
     <div className='App'>
