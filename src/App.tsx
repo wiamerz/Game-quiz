@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { fetchQuizQuestions } from './API';
 
 //components
-import QuestionCard from './components/QuestionCard'
+import QuestionCard from './components/QuestionCard';
+import ProgressBar from './components/ProgressBar';
 //styles
 import { GlobalStyle, Wrapper } from './App.styles';
 // types
@@ -89,6 +90,15 @@ const App = () => {
         )}
         {!gameOver && <p className='score'>Score: {score}</p>}
         {loading && <p>Loading Questions...</p>}
+        
+        {/* Progress bar - only show when game is active */}
+        {!loading && !gameOver && questions.length > 0 && (
+          <ProgressBar 
+            currentQuestion={number + 1} 
+            totalQuestions={TOTAL_QUESTIONS} 
+          />
+        )}
+        
         {!loading && !gameOver && questions.length > 0 && (
           <QuestionCard
             questionNr={number + 1}

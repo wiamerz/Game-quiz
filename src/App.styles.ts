@@ -31,14 +31,14 @@ export const Wrapper = styled.div`
   }
 
   .score {
-    color: #fff;
+    color: #000000;
     font-size: 2rem;
     margin: 0;
   }
 
   h1 {
     font-family: Fascinate Inline;
-    background-image: linear-gradient(180deg, #fff, #87f1ff);
+    background-image: linear-gradient(180deg, #000000, #87f1ff);
     font-weight: 400;
     background-size: 100%;
     background-clip: text;
