@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { fetchQuizQuestions } from './API';
 
@@ -19,18 +19,56 @@ export type AnswerObject = {
   correctAnswer: string;
 };
 
+// Type for saved quiz state
+export type SavedQuizState = {
+  questions: QuestionState[];
+  number: number;
+  userAnswers: AnswerObject[];
+  score: number;
+  playerName: string;
+};
+
 const TOTAL_QUESTIONS = 10;
 
-// Name page
+// Name Component
 const Name: React.FC = () => {
   const [name, setName] = useState('');
   const navigate = useNavigate();
 
+  useEffect(() => {
+    // Check if there's a saved session with the name
+    const savedState = localStorage.getItem('quizState');
+    if (savedState) {
+      const parsedState: SavedQuizState = JSON.parse(savedState);
+      setName(parsedState.playerName || '');
+    }
+  }, []);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (name.trim()) {
-      // Store the name in localStorage 
-      localStorage.setItem('playerName', name);
+      // Check if there's a saved session for this name
+      const savedState = localStorage.getItem('quizState');
+      if (savedState) {
+        const parsedState: SavedQuizState = JSON.parse(savedState);
+        if (parsedState.playerName === name) {
+          // If the name matches the saved session, update the name and navigate
+          const updatedState = { ...parsedState, playerName: name };
+          localStorage.setItem('quizState', JSON.stringify(updatedState));
+          navigate('/quiz');
+          return;
+        }
+      }
+      
+      // If no saved session or different name, start fresh
+      const newState: SavedQuizState = {
+        questions: [],
+        number: 0,
+        userAnswers: [],
+        score: 0,
+        playerName: name
+      };
+      localStorage.setItem('quizState', JSON.stringify(newState));
       navigate('/quiz');
     }
   };
@@ -40,20 +78,25 @@ const Name: React.FC = () => {
       <h1>REACT QUIZ</h1>
       <h2>Enter Your Name</h2>
       <form onSubmit={handleSubmit}>
-        <input 
+        <input
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="Your name"
           className="name-input"
         />
-        <button type="submit" className="start">Start Quiz</button>
+        <button type="submit" className="start">
+          {name && localStorage.getItem('quizState') && 
+           JSON.parse(localStorage.getItem('quizState') || '{}').playerName === name 
+            ? 'Continue Quiz' 
+            : 'Start Quiz'}
+        </button>
       </form>
     </Wrapper>
   );
 };
 
-// Quiz Component (your original App functionality)
+// Quiz Component
 const Quiz: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [questions, setQuestions] = useState<QuestionState[]>([]);
@@ -61,15 +104,44 @@ const Quiz: React.FC = () => {
   const [userAnswers, setUserAnswers] = useState<AnswerObject[]>([]);
   const [score, setScore] = useState(0);
   const [gameOver, setGameOver] = useState(true);
+  const [playerName, setPlayerName] = useState('');
   const navigate = useNavigate();
 
-  // Check if player has a name
-  React.useEffect(() => {
-    const playerName = localStorage.getItem('playerName');
-    if (!playerName) {
+  // Load saved state or redirect to name entry
+  useEffect(() => {
+    const savedStateString = localStorage.getItem('quizState');
+    if (!savedStateString) {
       navigate('/');
+      return;
+    }
+
+    const savedState: SavedQuizState = JSON.parse(savedStateString);
+    setPlayerName(savedState.playerName);
+
+    // If we have answered questions, restore the state
+    if (savedState.userAnswers.length > 0 && savedState.questions.length > 0) {
+      setQuestions(savedState.questions);
+      setNumber(savedState.number);
+      setUserAnswers(savedState.userAnswers);
+      setScore(savedState.score);
+      setGameOver(false);
+      setLoading(false);
     }
   }, [navigate]);
+
+  // Save state when any relevant state changes
+  useEffect(() => {
+    if (playerName) {
+      const stateToSave: SavedQuizState = {
+        questions,
+        number,
+        userAnswers,
+        score,
+        playerName
+      };
+      localStorage.setItem('quizState', JSON.stringify(stateToSave));
+    }
+  }, [questions, number, userAnswers, score, playerName]);
 
   const startTrivia = async () => {
     setLoading(true);
@@ -123,28 +195,44 @@ const Quiz: React.FC = () => {
     }
   };
 
-  const restartQuiz = () => {
+  const newQuiz = () => {
+    // Clear saved state and start fresh
+    const freshState: SavedQuizState = {
+      questions: [],
+      number: 0,
+      userAnswers: [],
+      score: 0,
+      playerName
+    };
+    localStorage.setItem('quizState', JSON.stringify(freshState));
+    startTrivia();
+  };
+
+  const switchPlayer = () => {
+    // Clear saved state completely
+    localStorage.removeItem('quizState');
     navigate('/');
   };
 
   return (
     <Wrapper>
       <h1>REACT QUIZ</h1>
+      {playerName && <p className="player-name">Player: {playerName}</p>}
+      
       {(gameOver || userAnswers.length === TOTAL_QUESTIONS) && (
         <div>
           {userAnswers.length === TOTAL_QUESTIONS && (
             <h2>Game Over! Your score: {score}/{TOTAL_QUESTIONS}</h2>
           )}
-          <button className='start' onClick={startTrivia}>
-            {userAnswers.length === TOTAL_QUESTIONS ? 'Play Again' : 'Start'}
+          <button className='start' onClick={newQuiz}>
+            {userAnswers.length === TOTAL_QUESTIONS ? 'Play Again' : 'Start Quiz'}
           </button>
-          {userAnswers.length === TOTAL_QUESTIONS && (
-            <button className='restart' onClick={restartQuiz}>
-              New Player
-            </button>
-          )}
+          <button className='restart' onClick={switchPlayer}>
+            Switch Player
+          </button>
         </div>
       )}
+      
       {!gameOver && <p className='score'>Score: {score}</p>}
       {loading && <p>Loading Questions...</p>}
 
@@ -166,6 +254,7 @@ const Quiz: React.FC = () => {
           callback={checkAnswer}
         />
       )}
+      
       {!gameOver && !loading && userAnswers.length === number + 1 && number !== TOTAL_QUESTIONS - 1 && (
         <button className='next' onClick={nextQuestion}>
           Next Question

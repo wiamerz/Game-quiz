@@ -42,10 +42,10 @@ export const fetchQuizQuestions = async (
         }));
       } else {
         console.error('Invalid API response format:', data);
-        return []; // Return empty array as fallback
+        return []; 
       }
     } catch (error) {
       console.error('Error fetching quiz questions:', error);
-      return []; // Return empty array on error
+      return []; 
     }
   };
