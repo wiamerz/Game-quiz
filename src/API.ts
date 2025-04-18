@@ -25,32 +25,27 @@ export const fetchQuizQuestions = async (
     difficulty: Difficulty
   ) => {
     const endpoint = `https://opentdb.com/api.php?amount=${amount}&difficulty=${difficulty}&type=multiple`;
-    const data = await (await fetch(endpoint)).json(); 
-    console.log(data); 
-  
-    return data.results.map((question: Question) => ({
-      ...question,
-      answers: shuffleArray([
-        ...question.incorrect_answers,
-        question.correct_answer,
-      ]),
-    }));
+    
+    try {
+      const response = await fetch(endpoint);
+      const data = await response.json();
+      console.log(data);
+      
+      // Check if data and data.results exist and are valid
+      if (data && data.results && Array.isArray(data.results)) {
+        return data.results.map((question: Question) => ({
+          ...question,
+          answers: shuffleArray([
+            ...question.incorrect_answers,
+            question.correct_answer,
+          ]),
+        }));
+      } else {
+        console.error('Invalid API response format:', data);
+        return []; // Return empty array as fallback
+      }
+    } catch (error) {
+      console.error('Error fetching quiz questions:', error);
+      return []; // Return empty array on error
+    }
   };
-  
-
-// export const fetchQuizQuestions = async (
-//     amount: number, 
-//     difficulty: Difficulty
-// ) => {
-//    const endpoint = `https://opentdb.com/api.php?amount=${amount}&difficulty=${difficulty}&type=multiple`;
-//    const data = await (await fetch (endpoint)).json();
-//    console.log(data);
-//    return data.results.map( (question: Question) => (
-//     {
-//         ...question,
-//         answers: shuffleArray([
-//             ...question.incorrect_answers, 
-//             question.correct_answer,
-//         ]),
-//   }));
-// }
