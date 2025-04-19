@@ -4,7 +4,7 @@ import ProgressBar from './ProgressBar';
 import {  Wrapper } from '../App.styles';
 import { AnswerObject, SavedQuizState, TOTAL_QUESTIONS } from '../types';
 import { QuestionState, Difficulty,  fetchQuizQuestions } from '../API';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 
 
 const Quiz: React.FC = () => {
@@ -123,6 +123,13 @@ const Quiz: React.FC = () => {
       localStorage.removeItem('quizState');
       navigate('/');
     };
+
+      // Navigate to results when game is over and all questions are answered
+  useEffect(() => {
+    if (gameOver && userAnswers.length === TOTAL_QUESTIONS) {
+      navigate('/results');
+    }
+  }, [gameOver, userAnswers.length, navigate]);
   
     return (
       <Wrapper>
@@ -140,6 +147,11 @@ const Quiz: React.FC = () => {
             <button className='restart' onClick={switchPlayer}>
               Switch Player
             </button>
+            {userAnswers.length === TOTAL_QUESTIONS && (
+            <Link to="/results" className="results-link">
+              View Detailed Results
+            </Link>
+          )}
           </div>
         )}
         
