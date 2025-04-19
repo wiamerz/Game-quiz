@@ -14,7 +14,7 @@ export const Wrapper = styled.div`
 	}
 `;
 
-//create type for props to be used in style
+
 type ButtonWrapperProps = {
 	correct: boolean;
 	userClicked: boolean;
